@@ -210,3 +210,18 @@ int get_sensor_position(int last_position) {
 long get_last_line_detected_ms() {
   return last_line_detected_ms;
 }
+
+/**
+ * @brief Imprime los valores raw de todos los sensores para debugging
+ *
+ */
+void debug_sensors() {
+  refresh_sensors();
+  for (int i = 0; i < SENSORS_COUNT; i++) {
+    Serial.print("S ");
+    Serial.print(i);
+    Serial.print(": ");
+    Serial.print(get_sensor_raw(i));
+  }
+  Serial.println();
+}

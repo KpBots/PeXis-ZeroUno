@@ -24,9 +24,9 @@
  */
 #define SENSOR_1 1
 #define SENSOR_2 0
-#define MUX_C 9
-#define MUX_B 3
-#define MUX_A 4
+#define MUX_C 3
+#define MUX_B 4
+#define MUX_A 9
 
 /**
  * @brief Pines de Motores

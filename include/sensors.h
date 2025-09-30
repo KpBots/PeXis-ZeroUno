@@ -28,6 +28,7 @@
 #define SENSORS_POSITION_MAX 255
 
 void calibrate_sensors();
+void debug_sensors();
 int get_sensor_raw(int sensor);
 int get_sensor_calibrated(int sensor);
 int get_sensor_position(int last_position);
