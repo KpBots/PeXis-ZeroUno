@@ -7,6 +7,8 @@ static int last_error = 0;
 static int base_speed = 0;
 static int base_accel_speed = 0;
 static int base_fan_speed = 0;
+static float pid_kp = MENU_1_PID_KP;
+static float pid_kd = MENU_1_PID_KD;
 
 static int speed = 0;
 
@@ -22,10 +24,28 @@ static long race_stopped_ms = 0;
  * @return float Corrección del controlador PID.
  */
 static float calc_correction(int error) {
-  float p = PID_KP * error;
-  float d = PID_KD * (error - last_error);
+  float p = pid_kp * error;
+  float d = pid_kd * (error - last_error);
   last_error = error;
   return p + d;
+}
+
+void set_pid_kp(float kp) {
+  pid_kp = kp;
+  last_error = 0;
+}
+
+float get_pid_kp() {
+  return pid_kp;
+}
+
+void set_pid_kd(float kd) {
+  pid_kd = kd;
+  last_error = 0;
+}
+
+float get_pid_kd() {
+  return pid_kd;
 }
 
 /**

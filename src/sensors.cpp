@@ -6,6 +6,7 @@ static long sensors_refresh_mc = 0;
 static int sensors_max[SENSORS_COUNT] = {SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN, SENSORS_MIN};
 static int sensors_min[SENSORS_COUNT] = {SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX, SENSORS_MAX};
 static int sensors_umb[SENSORS_COUNT] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static int sensors_umb2[SENSORS_COUNT] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 static long last_line_detected_ms = 0;
 
@@ -109,6 +110,7 @@ void calibrate_sensors() {
   do {
     rainbow_led(RGB_TOP);
     count_ok = 0;
+    refresh_sensors();
     for (int sensor = 0; sensor < SENSORS_COUNT; sensor++) {
       int sensor_value = get_sensor_raw(sensor);
       if (sensor_value > sensors_max[sensor]) {
@@ -118,6 +120,8 @@ void calibrate_sensors() {
         sensors_min[sensor] = sensor_value;
       }
       sensors_umb[sensor] = sensors_min[sensor] + ((sensors_max[sensor] - sensors_min[sensor]) * 2 / 3);
+      sensors_umb2[sensor] = sensors_min[sensor] + ((sensors_max[sensor] - sensors_min[sensor]) / 2);
+
       if (abs(sensors_max[sensor] - sensors_min[sensor]) >= 1000) {
         count_ok++;
       }
@@ -148,7 +152,6 @@ void calibrate_sensors() {
  */
 int get_sensor_raw(int sensor) {
   if (sensor >= 0 && sensor < SENSORS_COUNT) {
-    refresh_sensors();
     return sensors_raw[sensor];
   } else {
     return -1;
@@ -163,8 +166,20 @@ int get_sensor_raw(int sensor) {
  */
 int get_sensor_calibrated(int sensor) {
   if (sensor >= 0 && sensor < SENSORS_COUNT) {
-    refresh_sensors();
-    return sensors_raw[sensor] >= sensors_umb[sensor] ? SENSORS_MAX : SENSORS_MIN;
+    if (sensors_raw[sensor] >= sensors_umb[sensor]) {
+          return sensors_raw[sensor] >= sensors_umb[sensor] ? SENSORS_MAX : SENSORS_MIN;
+
+      //return LINE_DETECTED_VALUE;
+    } else if (sensors_raw[sensor] >= sensors_umb2[sensor]) {
+      //comprobamos si el sensor anterior, o posterior detecta línea en base al umbral anterior, si es así, permitimos checkear este menos restrictivo.
+      if ((sensor > 0 && sensors_raw[sensor - 1] >= sensors_umb[sensor - 1]) || (sensor < SENSORS_COUNT - 1 && sensors_raw[sensor + 1] >= sensors_umb[sensor + 1])) {
+        return LINE_HALF_DETECTED_VALUE;
+      } else {
+        return 0;
+      }
+    }else {
+      return 0;
+    }
   } else {
     return -1;
   }
@@ -180,23 +195,35 @@ int get_sensor_position(int last_position) {
   long sum_sensors_weight = 0;
   long sum_sensors = 0;
   int count_sensors_detecting = 0;
+  refresh_sensors();
   for (int sensor = 0; sensor < SENSORS_COUNT; sensor++) {
     int sensor_value = get_sensor_calibrated(sensor);
-    if (sensor_value >= sensors_umb[sensor]) {
+    if (sensor_value > 0) {
       count_sensors_detecting++;
+      //Serial.print(sensor);
+      //Serial.print(" ");
     }
     sum_sensors_weight += (sensor + 1) * sensor_value * 1000;
     sum_sensors += sensor_value;
   }
 
-  int position_max = ((1000 * (SENSORS_COUNT + 1)) / 2);
+  //int position_max = ((30 * (SENSORS_COUNT + 1)) / 2);
+    int position_max = ((1000 * (SENSORS_COUNT + 1)) / 2);
+
   int position = 0;
   if (count_sensors_detecting > 0 && count_sensors_detecting < SENSORS_COUNT) {
     position = (sum_sensors_weight / sum_sensors) - position_max;
     last_line_detected_ms = millis();
   } else {
-    position = last_position >= 0 ? position_max : -position_max;
+    if (count_sensors_detecting == 0) {
+      position = last_position >= 0 ? position_max : -position_max;
+    } else {
+      // Si todos los sensores detectan línea, se asume que está levantado.
+      position = last_position;
+    }
   }
+  //Serial.println();
+  //return position;
   return map(position, -position_max, position_max, -SENSORS_POSITION_MAX, SENSORS_POSITION_MAX);
 }
 
@@ -216,12 +243,18 @@ long get_last_line_detected_ms() {
  *
  */
 void debug_sensors() {
-  refresh_sensors();
-  for (int i = 0; i < SENSORS_COUNT; i++) {
-    Serial.print("S ");
-    Serial.print(i);
-    Serial.print(": ");
-    Serial.print(get_sensor_raw(i));
+      int lPos = 0;
+
+  while(true) {
+    lPos = get_sensor_position(lPos);
+    Serial.println("Position: " + String(lPos));
+    for (int i = 0; i < SENSORS_COUNT; i++) {
+      Serial.print("S ");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.print(get_sensor_raw(i));
+    }
+    Serial.println();
+    delay(500);
   }
-  Serial.println();
 }

@@ -17,6 +17,11 @@ void set_base_accel_speed(int accel_speed);
 void set_base_fan_speed(int fan_speed);
 int get_base_fan_speed();
 
+void set_pid_kp(float kp);
+float get_pid_kp();
+void set_pid_kd(float kd);
+float get_pid_kd();
+
 void initial_control_loop();
 void control_loop();
 

@@ -16,6 +16,8 @@ static void handle_menu_index() {
       set_base_speed(MENU_1_BASE_SPEED);
       set_base_accel_speed(MENU_1_ACCEL_SPEED);
       set_base_fan_speed(MENU_1_BASE_FAN_SPEED);
+      set_pid_kp(MENU_1_PID_KP);
+      set_pid_kd(MENU_1_PID_KD);
       break;
     case 1:
       clear_led(RGB_LEFT);
@@ -24,6 +26,8 @@ static void handle_menu_index() {
       set_base_speed(MENU_2_BASE_SPEED);
       set_base_accel_speed(MENU_2_ACCEL_SPEED);
       set_base_fan_speed(MENU_2_BASE_FAN_SPEED);
+      set_pid_kp(MENU_2_PID_KP);
+      set_pid_kd(MENU_2_PID_KD);
       break;
     case 2:
       clear_led(RGB_LEFT);
@@ -32,6 +36,8 @@ static void handle_menu_index() {
       set_base_speed(MENU_3_BASE_SPEED);
       set_base_accel_speed(MENU_3_ACCEL_SPEED);
       set_base_fan_speed(MENU_3_BASE_FAN_SPEED);
+      set_pid_kp(MENU_3_PID_KP);
+      set_pid_kd(MENU_3_PID_KD);
       break;
   }
 }

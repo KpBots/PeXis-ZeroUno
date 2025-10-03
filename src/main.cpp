@@ -13,7 +13,7 @@ long race_started_ms = 0;
 void setup() {
   init_components();
   calibrate_sensors();
-
+  //debug_sensors();
 }
 
 void loop() {

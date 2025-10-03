@@ -19,6 +19,8 @@
 #define SENSORS_MAX 4095
 #define SENSORS_MIN 0
 
+#define LINE_DETECTED_VALUE 2
+#define LINE_HALF_DETECTED_VALUE 1500
 
 /**
  * @brief Valor máximo de la posición sobre la línea.
