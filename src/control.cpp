@@ -1,0 +1,173 @@
+#include <control.h>
+
+static long last_control_loop_us = 0;
+static int position = 0;
+static int last_error = 0;
+
+static int base_speed = 0;
+static int base_accel_speed = 0;
+static int base_fan_speed = 0;
+static float pid_kp = MENU_1_PID_KP;
+static float pid_kd = MENU_1_PID_KD;
+
+static int speed = 0;
+
+static bool race_started = false;
+static bool race_starting = false;
+static long race_started_ms = 0;
+static long race_stopped_ms = 0;
+
+/**
+ * @brief Realiza el cálculo de la corrección del controlador PID en función del error respecto a la posición de la línea.
+ *
+ * @param error Desplazamiento del robot respecto a la línea.
+ * @return float Corrección del controlador PID.
+ */
+static float calc_correction(int error) {
+  float p = pid_kp * error;
+  float d = pid_kd * (error - last_error);
+  last_error = error;
+  return p + d;
+}
+
+void set_pid_kp(float kp) {
+  pid_kp = kp;
+  last_error = 0;
+}
+
+float get_pid_kp() {
+  return pid_kp;
+}
+
+void set_pid_kd(float kd) {
+  pid_kd = kd;
+  last_error = 0;
+}
+
+float get_pid_kd() {
+  return pid_kd;
+}
+
+/**
+ * @brief Establece el estado de la carrera y, en caso de haber comenzado, guarda el tiempo (ms) de inicio.
+ *
+ * @param started Indica si la carrera ha comenzado.
+ */
+void set_race_started(bool started) {
+  race_started = started;
+  if (started) {
+    speed = 0;
+    race_starting = false;
+    race_started_ms = millis();
+  } else {
+    race_stopped_ms = millis();
+  }
+}
+
+/**
+ * @brief Comprueba si la carrera está en curso.
+ *
+ * @return true En carrera.
+ * @return false En espera.
+ */
+bool is_race_started() {
+  return race_started;
+}
+
+
+void set_race_starting(bool starting) {
+  race_starting = starting;
+}
+
+bool is_race_starting(){
+  return race_starting;
+}
+
+/**
+ * @brief Obtiene los ms de inicio de la carrera.
+ * Comparando este dato con el resultado de millis() se puede calcular el tiempo transcurrido desde el inicio de la carrera.
+ *
+ * @return long Tiempo de inicio de la carrera en ms.
+ */
+long get_race_started_ms() {
+  return race_started_ms;
+}
+
+long get_race_stopped_ms() {
+  return race_stopped_ms;
+}
+
+/**
+ * @brief Establece la velocidad base del robot.
+ *
+ * @param speed Velocidad base.
+ */
+void set_base_speed(int speed) {
+  base_speed = speed;
+}
+
+/**
+ * @brief Establece la aceleración inicial del robot.
+ *
+ * @param accel_speed Aceleración inicial.
+ */
+void set_base_accel_speed(int accel_speed) {
+  base_accel_speed = accel_speed;
+}
+
+/**
+ * @brief Establece la velocidad base del ventilador.
+ *
+ * @param fan_speed Velocidad base del ventilador.
+ */
+void set_base_fan_speed(int fan_speed) {
+  base_fan_speed = fan_speed;
+}
+
+/**
+ * @brief Obtiene la velocidad base del ventilador.
+ *
+ * @return int Velocidad base del ventilador.
+ */
+int get_base_fan_speed() {
+  return base_fan_speed;
+}
+
+void initial_control_loop() {
+  if (micros() - last_control_loop_us > CONTROL_LOOP_US || micros() < last_control_loop_us) {
+    position = get_sensor_position(position);
+    int correction = calc_correction(position);
+    set_motors_speed(correction, -correction);
+    last_control_loop_us = micros();
+  }
+}
+
+/**
+ * @brief Bucle de control principal. Realiza el cálculo de la corrección del controlador PID y establece la velocidad de los motores y el ventilador.
+ * Esta función debe llamarse lo más frecuentemente posible. El tiempo entre ejecuciones está definido por la constante CONTROL_LOOP_US.
+ *
+ */
+void control_loop() {
+  if (micros() - last_control_loop_us > CONTROL_LOOP_US || micros() < last_control_loop_us) {
+    position = get_sensor_position(position);
+    int correction = calc_correction(position);
+    if (millis() - get_last_line_detected_ms() > 250) {
+      set_motors_speed(0, 0);
+      set_fan_speed(0);
+      set_race_started(false);
+    } else {
+
+      if (speed < base_speed) {
+        speed = 20 + (base_accel_speed * ((millis() - race_started_ms) / 1000.0f));
+      } else if (speed > base_speed) {
+        speed = base_speed;
+      }
+
+      set_motors_speed(speed + correction, speed - correction);
+      if (base_fan_speed > 0) {
+        set_fan_speed(base_fan_speed);
+      }
+    }
+    last_control_loop_us = micros();
+  }
+}
