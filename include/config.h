@@ -51,33 +51,33 @@
  * Dispone de varios menús para seleccionar la velocidad y aceleración del robot.
  * 
  */
-#define MENU_1_BASE_SPEED 45
+#define MENU_1_BASE_SPEED 55
 #define MENU_1_ACCEL_SPEED 60
-#define MENU_1_BASE_FAN_SPEED 60
+#define MENU_1_BASE_FAN_SPEED 65
 
-#define MENU_2_BASE_SPEED 55
-#define MENU_2_ACCEL_SPEED 50
-#define MENU_2_BASE_FAN_SPEED 65
+#define MENU_2_BASE_SPEED 70
+#define MENU_2_ACCEL_SPEED 60
+#define MENU_2_BASE_FAN_SPEED 85
 
-#define MENU_3_BASE_SPEED 70
-#define MENU_3_ACCEL_SPEED 45
-#define MENU_3_BASE_FAN_SPEED 85
+#define MENU_3_BASE_SPEED 80
+#define MENU_3_ACCEL_SPEED 60
+#define MENU_3_BASE_FAN_SPEED 100
 
 /**
  * @brief Ganancia proporcional (Kp) específica por menú de velocidad.
  * Ajusta estos valores para afinar el comportamiento del PID según la velocidad seleccionada.
  */
-#define MENU_1_PID_KP 0.19f
-#define MENU_2_PID_KP 0.20f
-#define MENU_3_PID_KP 0.22f
+#define MENU_1_PID_KP 0.20f
+#define MENU_2_PID_KP 0.22f
+#define MENU_3_PID_KP 0.24f
 
 /**
  * @brief Ganancia derivativa (Kd) específica por menú de velocidad.
  * Ajusta estos valores para afinar el comportamiento del PID según la velocidad seleccionada.
  */
-#define MENU_1_PID_KD 3.5f
-#define MENU_2_PID_KD 4.3f
-#define MENU_3_PID_KD 5.5f
+#define MENU_1_PID_KD 4.5f
+#define MENU_2_PID_KD 6.0f
+#define MENU_3_PID_KD 6.5f
 
 void init_components();
 long get_ms_start();
